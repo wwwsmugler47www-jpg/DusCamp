@@ -1,4 +1,4 @@
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function supabaseHeaders() {
@@ -67,19 +67,35 @@ export default async function(req, res) {
     if (req.method === "GET") {
       const q = req.query || {};
 
+      if (q.health === "1") {
+        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+          return res.status(500).json({ ok: false, error: "Supabase ortam değişkenleri eksik." });
+        }
+        const rows = await supabase("questions?select=id&limit=1");
+        return res.status(200).json({ ok: true, database: true, sample: Array.isArray(rows) ? rows.length : 0 });
+      }
+
       if (q.summary === "1") {
-        const params = [
+        const base = [
           "select=id,lesson,topic,question_group,created_at",
-          "order=created_at.asc",
-          "limit=100000",
+          "order=created_at.asc"
         ];
         if (q.lesson) {
-          params.push(`lesson=eq.${encodeURIComponent(String(q.lesson).trim())}`);
+          base.push(`lesson=eq.${encodeURIComponent(String(q.lesson).trim())}`);
         }
-        const rows = await supabase(`questions?${params.join("&")}`);
+        const all = [];
+        const pageSize = 1000;
+        for (let offset = 0; ; offset += pageSize) {
+          const rows = await supabase(`questions?${base.join("&")}&offset=${offset}&limit=${pageSize}`);
+          const page = Array.isArray(rows) ? rows : [];
+          all.push(...page);
+          if (page.length < pageSize) break;
+          if (offset >= 100000) break;
+        }
         return res.status(200).json({
           summary: true,
-          groups: groupSummary(Array.isArray(rows) ? rows : [], q.home !== "1"),
+          total: all.length,
+          groups: groupSummary(all, q.home !== "1"),
         });
       }
 
@@ -96,12 +112,24 @@ export default async function(req, res) {
         const topicEncoded = encodeURIComponent(topic);
         const base = params.filter(x => !x.startsWith("order=") && !x.startsWith("limit="));
         const common = base.join("&");
+        async function fetchPages(extraFilter) {
+          const out = [];
+          const pageSize = 1000;
+          for (let offset = 0; ; offset += pageSize) {
+            const rows = await supabase(`questions?${common}&${extraFilter}&order=created_at.asc&offset=${offset}&limit=${pageSize}`);
+            const page = Array.isArray(rows) ? rows : [];
+            out.push(...page);
+            if (page.length < pageSize) break;
+            if (offset >= 100000) break;
+          }
+          return out;
+        }
         const [byGroup, byTopic] = await Promise.all([
-          supabase(`questions?${common}&question_group=eq.${topicEncoded}&order=created_at.asc&limit=100000`),
-          supabase(`questions?${common}&topic=eq.${topicEncoded}&order=created_at.asc&limit=100000`),
+          fetchPages(`question_group=eq.${topicEncoded}`),
+          fetchPages(`topic=eq.${topicEncoded}`),
         ]);
         const seen = new Set();
-        const rows = [...(Array.isArray(byGroup) ? byGroup : []), ...(Array.isArray(byTopic) ? byTopic : [])]
+        const rows = [...byGroup, ...byTopic]
           .filter(x => {
             if (seen.has(x.id)) return false;
             seen.add(x.id);
