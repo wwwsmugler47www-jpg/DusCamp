@@ -92,8 +92,27 @@ export default async function(req, res) {
         params.push(`lesson=eq.${encodeURIComponent(String(q.lesson).trim())}`);
       }
       if (q.topic) {
-        const topic = encodeURIComponent(String(q.topic).trim());
-        params.push(`or=(question_group.eq.${topic},topic.eq.${topic})`);
+        const topic = String(q.topic).trim();
+        const topicEncoded = encodeURIComponent(topic);
+        const base = params.filter(x => !x.startsWith("order=") && !x.startsWith("limit="));
+        const common = base.join("&");
+        const [byGroup, byTopic] = await Promise.all([
+          supabase(`questions?${common}&question_group=eq.${topicEncoded}&order=created_at.asc&limit=100000`),
+          supabase(`questions?${common}&topic=eq.${topicEncoded}&order=created_at.asc&limit=100000`),
+        ]);
+        const seen = new Set();
+        const rows = [...(Array.isArray(byGroup) ? byGroup : []), ...(Array.isArray(byTopic) ? byTopic : [])]
+          .filter(x => {
+            if (seen.has(x.id)) return false;
+            seen.add(x.id);
+            return true;
+          })
+          .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+
+        return res.status(200).json(rows.map(x => ({
+          ...x,
+          options: [x.option_a, x.option_b, x.option_c, x.option_d, x.option_e],
+        })));
       }
 
       const rows = await supabase(`questions?${params.join("&")}`);
