@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DUSCamp Yönetici</title><link rel="stylesheet" href="/style.css">
+<style>
+body{background:#0d1117;color:#e6edf3}.adminWrap{max-width:1000px;margin:24px auto;padding:0 20px}.adminCard{background:#fff;border-radius:18px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px #1720330b}.adminCard h2{margin-top:0}.adminForm{display:grid;gap:12px}.adminForm input,.adminForm textarea,.adminForm select{width:100%;padding:12px;border:1px solid #d7dce5;border-radius:10px;font:inherit;background:#fff;color:#172033}.adminForm textarea{min-height:100px;resize:vertical}.adminBtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.adminBtn{border:0;border-radius:10px;padding:11px 15px;background:#eef2ff;color:#243b78;font-weight:700;cursor:pointer}.adminBtn.primary{background:#2563eb;color:#fff}.adminBtn:disabled{opacity:.5;cursor:not-allowed}.adminMsg{padding:12px;border-radius:10px;margin-top:12px}.ok{background:#f0fdf4;color:#166534}.err{background:#fff1f2;color:#991b1b}.bankItem{border:1px solid #e5e7eb;border-radius:12px;padding:15px;margin:10px 0;background:#fff}.bankItem p{margin:8px 0}.userGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.userStat{background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:16px}.userStat b{display:block;font-size:25px}.userStat span{font-size:13px;color:#64748b}.userTableWrap{overflow:auto}.userTable{width:100%;border-collapse:collapse;min-width:900px}.userTable th,.userTable td{padding:11px 9px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}.userTable th{font-size:12px;color:#64748b;background:#f8fafc}.userTable td strong{display:block}.userTable td small{color:#64748b}.userBadge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:700}.jsonPreview{width:100%;min-height:320px;margin-top:12px;font:13px monospace;padding:12px;border:1px solid #d7dce5;border-radius:10px}
+.adminMenu{display:flex;gap:8px;flex-wrap:wrap;background:#161b22;padding:10px;border-radius:14px;margin-bottom:20px;box-shadow:0 5px 20px #0006;position:sticky;top:8px;z-index:10}.adminMenu button{background:#21262d;color:#c9d1d9;border:1px solid #30363d}.adminMenu button.active{background:#2563eb;color:#fff;border-color:#2563eb}.adminSection{display:none}.adminSection.active{display:block}.darkAdmin{background:#0d1117;color:#e6edf3}.darkAdmin header{background:#161b22;color:#e6edf3;border-color:#30363d}.darkAdmin header .brand{color:#58a6ff}.darkAdmin header nav{display:none}.darkAdmin .adminCard{background:#161b22;color:#e6edf3;box-shadow:0 5px 20px #0006}.darkAdmin .adminForm input,.darkAdmin .adminForm textarea,.darkAdmin .adminForm select,.darkAdmin #search{background:#0d1117;color:#e6edf3;border-color:#30363d}.darkAdmin .adminForm input::placeholder,.darkAdmin .adminForm textarea::placeholder,.darkAdmin #search::placeholder{color:#8b949e}.darkAdmin .adminBtn{background:#21262d;color:#c9d1d9;border:1px solid #30363d}.darkAdmin .adminBtn.primary{background:#2563eb;color:#fff;border-color:#2563eb}.darkAdmin .bankItem,.darkAdmin .userStat{background:#0d1117;border-color:#30363d}.darkAdmin .userTable th{background:#21262d;color:#8b949e}.darkAdmin .userTable td{border-color:#30363d}.darkAdmin .userStat span,.darkAdmin .userTable td small,.darkAdmin .userTable th{color:#8b949e}.userRowBtn{background:none;border:0;color:#58a6ff;font-weight:700;cursor:pointer;padding:0;text-align:left}.userDetail{margin-top:14px;padding:18px;border:1px solid #30363d;border-radius:14px;background:#0d1117}.detailGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}@media(max-width:700px){.detailGrid{grid-template-columns:1fr}.userGrid{grid-template-columns:repeat(2,1fr)}}.detailItem{padding:12px;border:1px solid #30363d;border-radius:10px}.detailItem b{display:block;margin-bottom:5px}.darkAdmin .userBadge{background:#1f2a44;color:#93c5fd}.darkAdmin .ok{background:#0f2d1b;color:#7ee2a8}.darkAdmin .err{background:#35171b;color:#ff9b9b}
+</style></head>
+<body class="darkAdmin"><header><div class="brand">🦷 DUSCamp · Yönetici</div></header>
+<main class="adminWrap">
+<div class="adminMenu">
+<button class="active" data-admin-tab="overview" onclick="showAdminTab('overview')">📊 Genel Bakış</button>
+<button data-admin-tab="users" onclick="showAdminTab('users')">👥 Kullanıcılar</button>
+<button data-admin-tab="feedback" onclick="showAdminTab('feedback')">💡 Öneriler</button>
+<button data-admin-tab="bank" onclick="showAdminTab('bank')">📚 Soru Bankası</button>
+<button data-admin-tab="add" onclick="showAdminTab('add')">➕ Soru Ekle</button>
+<button data-admin-tab="bulk" onclick="showAdminTab('bulk')">📥 Toplu Yükle</button>
+</div>
+
+<section class="adminCard adminSection active" id="overviewSection">
+<h2>📊 Genel Bakış</h2>
+<p style="color:#64748b">DUSCamp yönetim paneline hoş geldin. Üst menüden yapmak istediğin işlemi seçebilirsin.</p>
+<div class="adminBtns">
+<button class="adminBtn" onclick="showAdminTab('bank')">📚 Soru Bankasına Git</button>
+<button class="adminBtn" onclick="showAdminTab('users')">👥 Kullanıcıları Gör</button>
+<button class="adminBtn" onclick="showAdminTab('feedback')">💡 Önerileri Gör</button>
+</div>
+</section>
+
+<!-- Kaynaktan DUS Sorusu Üret paneli kapatıldı. -->
+
+<section class="adminCard adminSection" id="bulkSection">
+<h2>🤖 Hazır JSON Toplu Aktar</h2>
+<div class="adminForm">
+<select id="bulkLesson"><option value="">Ders seç (opsiyonel)</option><option>Anatomi</option><option>Fizyoloji</option><option>Biyokimya</option><option>Mikrobiyoloji</option><option>Histoloji ve Embriyoloji</option><option>Patoloji</option><option>Farmakoloji</option><option>Restoratif Diş Tedavisi</option><option>Protetik Diş Tedavisi</option><option>Endodonti</option><option>Periodontoloji</option><option>Ortodonti</option><option>Pedodonti</option><option>Ağız, Diş ve Çene Cerrahisi</option><option>Ağız, Diş ve Çene Radyolojisi</option></select>
+<input id="bulkGroup" placeholder="Toplu konu başlığı (opsiyonel)">
+<textarea id="bulk" style="min-height:260px" placeholder="JSON çıktısını buraya yapıştır"></textarea><input id="file" type="file" accept=".json,.txt"></div>
+<div class="adminBtns"><button class="adminBtn" onclick="checkBulk()">🔎 Soruları Kontrol Et</button><button class="adminBtn primary" id="saveBulk" onclick="saveBulk()" disabled>💾 Toplu Kaydet</button></div>
+<div id="bulkMsg"></div>
+</section>
+
+<section class="adminCard adminSection" id="addSection">
+<h2>➕ Tek Soru Ekle</h2>
+<div class="adminForm">
+<input id="lesson" placeholder="Ders"><input id="topic" placeholder="Konu"><input id="group" placeholder="Konu grubu">
+<textarea id="question" placeholder="Soru"></textarea><input id="a" placeholder="A şıkkı"><input id="b" placeholder="B şıkkı"><input id="c" placeholder="C şıkkı"><input id="d" placeholder="D şıkkı"><input id="e" placeholder="E şıkkı">
+<select id="correct"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select>
+<select id="difficulty"><option>Orta-Üst</option><option>Orta</option><option>Zor</option></select><textarea id="explanation" placeholder="Açıklama (opsiyonel)"></textarea>
+</div><div class="adminBtns"><button class="adminBtn primary" onclick="saveOne()">💾 Soruyu Kaydet</button></div><div id="oneMsg"></div>
+</section>
+
+<section class="adminCard adminSection" id="usersCard">
+<h2>👥 Kullanıcılar</h2>
+<p style="color:#64748b;margin-top:-6px">Hesapların ilk görüldüğü tarih, son aktivitesi ve çözdükleri soru/konu bilgileri.</p>
+<div class="userGrid">
+<div class="userStat"><b id="uRegistered">-</b><span>Kayıtlı hesap</span></div>
+<div class="userStat"><b id="uActive">-</b><span>Soru çözen hesap</span></div>
+<div class="userStat"><b id="uAnswers">-</b><span>Toplam cevap</span></div>
+<div class="userStat"><b id="uQuestions">-</b><span>Farklı soru çözümü</span></div>
+</div>
+<div class="adminBtns"><button class="adminBtn" onclick="loadUsers()">🔄 Kullanıcıları Yenile</button></div>
+<div id="usersMsg"></div><div id="activityReport" style="margin:18px 0"></div>
+<div id="userDetail"></div><div class="userTableWrap"><table class="userTable"><thead><tr><th>Hesap</th><th>İlk görüldü</th><th>Son aktivite</th><th>Çözülen soru</th><th>Konu</th><th>Ders</th><th>Doğru / Yanlış</th></tr></thead><tbody id="usersList"><tr><td colspan="7">Yükleniyor...</td></tr></tbody></table></div>
+</section>
+
+<section class="adminCard adminSection" id="feedbackCard">
+<h2>💡 Kullanıcı Önerileri</h2>
+<p style="color:#64748b;margin-top:-6px">Kullanıcıların uygulama içinden gönderdiği öneriler burada görünür.</p>
+<div class="adminBtns"><button class="adminBtn" onclick="loadFeedback()">🔄 Önerileri Yenile</button></div>
+<div id="feedbackMsg"></div>
+<div id="feedbackList"></div>
+</section>
+
+<section class="adminCard adminSection" id="bankSection"> <h2>📚 Soru Bankası</h2><p id="bankCount">Yükleniyor...</p><input id="search" placeholder="🔎 Soru, ders veya konu ara" oninput="renderBank()"><div id="bankList"></div></section>
+
+<section class="adminCard" id="editCard" style="display:none">
+<h2>✏️ Soruyu Düzenle</h2>
+<div class="adminForm">
+<input id="editId" type="hidden"><input id="editLesson" placeholder="Ders"><input id="editTopic" placeholder="Konu"><input id="editGroup" placeholder="Konu grubu">
+<textarea id="editQuestion" placeholder="Soru"></textarea><input id="editA" placeholder="A şıkkı"><input id="editB" placeholder="B şıkkı"><input id="editC" placeholder="C şıkkı"><input id="editD" placeholder="D şıkkı"><input id="editE" placeholder="E şıkkı">
+<select id="editCorrect"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select>
+<select id="editDifficulty"><option>Kolay</option><option>Orta</option><option>Orta-Üst</option><option>Zor</option></select>
+<textarea id="editExplanation" placeholder="Açıklama (opsiyonel)"></textarea>
+</div>
+<div class="adminBtns"><button class="adminBtn primary" onclick="updateQuestion()">💾 Değişiklikleri Kaydet</button><button class="adminBtn" onclick="cancelEdit()">İptal</button></div>
+<div id="editMsg"></div>
+</section>
+</main>
+
+<script>
+const API='/api/questions';
+function showAdminTab(tab){
+  document.querySelectorAll('.adminSection').forEach(function(el){el.classList.remove('active')});
+  document.querySelectorAll('.adminMenu button').forEach(function(el){el.classList.toggle('active',el.dataset.adminTab===tab)});
+  const map={overview:'overviewSection',users:'usersCard',feedback:'feedbackCard',bank:'bankSection',add:'addSection',bulk:'bulkSection'};
+  const el=document.getElementById(map[tab]||'overviewSection');
+  if(el)el.classList.add('active');
+  if(tab==='users')loadUsers();
+  if(tab==='feedback')loadFeedback();
+  if(tab==='bank')loadBank();
+}
+let imported=[],bank=[];
+function $(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]})}
+function repairJson(raw){
+  let s=String(raw||'').replace(/^\uFEFF/,'').trim();
+  s=s.replace(/^\s*\x60\x60\x60(?:json)?\s*/i,'').replace(/\s*\x60\x60\x60\s*$/,'').trim();
+  var first=s.indexOf('['), last=s.lastIndexOf(']');
+  if(first>0&&last>first){var before=s.slice(0,first).trim();if(!before||/^\w+[:\s]*$/.test(before))s=s.slice(first,last+1)}
+  s=s.replace(/(^|\n)(\s*)"([A-E])"\s*:\s*(?!")([^\n]*?)(\s*)(,?)(?=\n|\})/g,function(_,nl,sp,key,val,trail,comma){
+    return nl+sp+'"'+key+'": '+JSON.stringify(val.trim())+comma;
+  });
+  return s;
+}
+function normalizeQuestionObject(q){
+  q=q||{};
+  if(!q.options){
+    var vals=['A','B','C','D','E'].map(function(k){return q[k]});
+    if(vals.some(function(v){return v!==undefined})) q.options=vals;
+  } else if(!Array.isArray(q.options) && typeof q.options==='object'){
+    q.options=['A','B','C','D','E'].map(function(k){return q.options[k]});
+  }
+  if(q.correct===undefined || q.correct===null || q.correct==='') q.correct=q.answer||q.correct_answer||'';
+  return q;
+}
+function cleanText(v){return String(v==null?'':v).replace(/^\\s+|\\s+$/g,'').replace(/^['\"]|['\"]$/g,'').trim()}
+function normalizeCorrect(v,o){
+  let s=cleanText(v).toUpperCase();
+  if(/^[ABCDE]$/.test(s))return s;
+  let m=s.match(/(?:ŞIK|SECENEK|SEÇENEK|ANSWER|CORRECT)\\s*[:.)-]?\\s*([ABCDE])/i);if(m)return m[1].toUpperCase();
+  let idx=o.findIndex(function(x){return cleanText(x).toUpperCase()===s});if(idx>=0)return 'ABCDE'[idx];
+  let letter=s.match(/^([ABCDE])[.)\\s:-]/i);if(letter)return letter[1].toUpperCase();
+  return '';
+}
+function extractOptions(q){
+  let o=q.options||q.secenekler||q.seçenekler||q.choices||q.şıklar||q.siklar;
+  if(Array.isArray(o))o=o.slice(0,5);
+  else if(o&&typeof o==='object')o=['A','B','C','D','E'].map(function(k){return o[k]!==undefined?o[k]:o[k.toLowerCase()]});
+  else o=['A','B','C','D','E'].map(function(k){return q[k]!==undefined?q[k]:(q['option_'+k.toLowerCase()]!==undefined?q['option_'+k.toLowerCase()]:q['option'+k])});
+  return o.map(cleanText);
+}
+function repairQuestion(q){
+ q=q||{};
+ let o=extractOptions(q);
+ let question=cleanText(q.question||q.soru||q.question_text||q.soru_metni||q.text);
+ let rawCorrect=q.correct;
+ if(rawCorrect===undefined||rawCorrect===null||rawCorrect==='') rawCorrect=q.answer||q.correct_answer||q.cevap||q.dogru||q.doğru||q.dogru_cevap||q.doğru_cevap||q.correctOption||q.correct_answer_index;
+ let correct=normalizeCorrect(rawCorrect,o);
+ if(!correct && /^\\d+$/.test(String(rawCorrect))){
+   let n=Number(rawCorrect);
+   if(n>=0&&n<=4) correct='ABCDE'[n];
+   else if(n>=1&&n<=5) correct='ABCDE'[n-1];
+ }
+ if(!correct && rawCorrect && o.length===5){
+   let idx=Number(rawCorrect);
+   if(Number.isInteger(idx)&&idx>=0&&idx<5) correct='ABCDE'[idx];
+ }
+ return {lesson:cleanText(q.lesson||q.ders||'Genel')||'Genel',topic:cleanText(q.topic||q.konu||'Genel')||'Genel',question_group:cleanText(q.question_group||q.group||q.konu_grubu||q.grup||''),question,options:o,correct,difficulty:cleanText(q.difficulty||q.zorluk||'Orta')||'Orta',explanation:cleanText(q.explanation||q.aciklama||q.açıklama||'')};
+}
+function findQuestionObjectsFromText(s){
+  var out=[],pos=0;
+  while(pos<s.length){
+    var q=s.indexOf('"question"',pos);if(q<0)break;
+    var start=s.lastIndexOf('{',q),depth=0,end=-1,inStr=false,esc=false;
+    for(var i=start;i<s.length;i++){
+      var c=s[i];
+      if(inStr){if(esc)esc=false;else if(c==='\\\\')esc=true;else if(c==='"')inStr=false}
+      else if(c==='"')inStr=true;
+      else if(c==='{')depth++;
+      else if(c==='}'&&!--depth){end=i+1;break}
+    }
+    if(end>start){try{var o=JSON.parse(s.slice(start,end));if(o.question)out.push(o)}catch(e){}pos=end}else break;
+  }
+  return out;
+}
+function findQuestionObjects(value){
+  var out=[];
+  function walk(v){
+    if(!v)return;
+    if(Array.isArray(v)){v.forEach(walk);return}
+    if(typeof v!=='object')return;
+    if(v.question||v.soru||v.question_text||v.soru_metni){out.push(v);return}
+    Object.keys(v).forEach(function(k){walk(v[k])});
+  }
+  walk(value);
+  return out;
+}
+function parseQuestions(raw){
+  let data;
+  let cleaned=repairJson(raw);
+  try{data=JSON.parse(cleaned);}
+  catch(e){
+    var qs=findQuestionObjectsFromText(cleaned);
+    if(qs.length)data=qs;
+    else throw Error('JSON biçimi bozuk; soru blokları otomatik okunamadı.');
+  }
+  if(data && !Array.isArray(data)){
+    var keys=['questions','sorular','items','data','results','records','questionList','question_list','list'];
+    var found=null;
+    for(var k=0;k<keys.length;k++){if(Array.isArray(data[keys[k]])){found=data[keys[k]];break}}
+    if(found) data=found;
+    else if(data.question||data.soru||data.question_text||data.soru_metni) data=[data];
+    else{
+      var arrays=Object.keys(data).map(function(k){return data[k]}).filter(function(v){return Array.isArray(v)});
+      var candidate=arrays.find(function(v){return v.length&&v.every(function(x){return x&&typeof x==='object'&&!Array.isArray(x)})});
+      if(candidate)data=candidate;
+    }
+  }
+  if(!Array.isArray(data)){var auto=findQuestionObjects(data);if(auto.length)data=auto;else throw Error('Soru verisi bulunamadı; metin içindeki soru blokları da okunamadı.');}
+
+  let fixed=[],bad=[],missingAnswer=[];
+  data.forEach(function(q,i){
+    let x=repairQuestion(q);
+    if(x.question&&x.options.length===5&&x.options.every(Boolean)&&x.correct){
+      fixed.push(x);
+    }else if(x.question&&x.options.length===5&&x.options.every(Boolean)&&!x.correct){
+      missingAnswer.push(i+1);
+    }else{
+      bad.push(i+1);
+    }
+  });
+
+  if(!fixed.length){
+    if(missingAnswer.length===data.length){
+      throw Error('Soruların biçimi doğru; ancak hiçbirinde "correct" (doğru şık) alanı yok. Uygulama sorunun cevabını güvenilir biçimde tahmin etmez. JSON\'a her soru için "correct":"A"–"E" ekleyip tekrar yükle.');
+    }
+    throw Error('Hiçbir soru otomatik olarak kurtarılamadı.');
+  }
+  if(missingAnswer.length){
+    console.warn('Doğru cevabı eksik sorular atlandı:',missingAnswer);
+  }
+  return fixed;
+}
+function checkBulk(){
+  imported=[];$('saveBulk').disabled=true;$('bulkMsg').innerHTML='';
+  try{
+    var raw=$('bulk').value.trim();
+    if(!raw) throw Error('JSON alanı boş.');
+    imported=parseQuestions(raw);
+    var l=$('bulkLesson').value.trim(),g=$('bulkGroup').value.trim();
+    if(l) imported.forEach(function(q){q.lesson=l});
+    if(g) imported.forEach(function(q){q.question_group=g});
+    $('saveBulk').disabled=false;
+    $('bulkMsg').innerHTML='<div class="adminMsg ok">✅ Kontrol başarılı. '+imported.length+' soru geçerli ve kayda hazır.</div>';
+  }catch(e){
+    $('bulkMsg').innerHTML='<div class="adminMsg err">❌ '+esc(e.message)+'</div>';
+  }
+}
+async function saveBulk(){
+  if(!imported.length)return;
+  $('saveBulk').disabled=true;let ok=0;
+  for(let q of imported){try{let r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(q)});if(r.ok)ok++}catch(e){}}
+  $('bulkMsg').innerHTML='<div class="adminMsg ok">🎉 '+ok+'/'+imported.length+' soru kaydedildi.</div>';imported=[];loadBank();
+}
+async function saveOne(){
+  let q={lesson:$('lesson').value.trim()||'Genel',topic:$('topic').value.trim()||'Genel',question_group:$('group').value.trim(),question:$('question').value.trim(),options:[$('a').value,$('b').value,$('c').value,$('d').value,$('e').value],correct:$('correct').value,difficulty:$('difficulty').value,explanation:$('explanation').value.trim()};
+  try{let r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(q)});if(!r.ok)throw Error(await r.text());$('oneMsg').innerHTML='<div class="adminMsg ok">✅ Soru kaydedildi.</div>';loadBank()}catch(e){$('oneMsg').innerHTML='<div class="adminMsg err">❌ '+esc(e.message)+'</div>'}
+}
+function renderBank(){
+ let t=($('search').value||'').toLowerCase();
+ let list=bank.filter(function(q){return (q.question+' '+q.lesson+' '+q.topic+' '+(q.question_group||'')).toLowerCase().includes(t)});
+ $('bankList').innerHTML=list.map(function(q){
+   return '<div class="bankItem"><b>'+esc(q.lesson)+' · '+esc(q.question_group||q.topic)+'</b><p>'+esc(q.question)+'</p><small>Doğru: '+esc(q.correct)+' · '+esc(q.difficulty)+'</small><div class="adminBtns"><button class="adminBtn" onclick="startEdit(\''+q.id+'\')">✏️ Düzenle</button><button class="adminBtn" onclick="deleteQuestion(\''+q.id+'\')">🗑️ Sil</button></div></div>';
+ }).join('')||'<p>Soru bulunamadı.</p>';
+}
+function startEdit(id){
+ let q=bank.find(function(x){return String(x.id)===String(id)});
+ if(!q)return;
+ $('editId').value=q.id;$('editLesson').value=q.lesson||'';$('editTopic').value=q.topic||'';$('editGroup').value=q.question_group||'';
+ $('editQuestion').value=q.question||'';
+ let o=Array.isArray(q.options)?q.options:[q.option_a,q.option_b,q.option_c,q.option_d,q.option_e];
+ $('editA').value=o[0]||'';$('editB').value=o[1]||'';$('editC').value=o[2]||'';$('editD').value=o[3]||'';$('editE').value=o[4]||'';
+ $('editCorrect').value=q.correct||'A';$('editDifficulty').value=q.difficulty||'Orta';$('editExplanation').value=q.explanation||'';
+ $('editMsg').innerHTML='';$('editCard').style.display='block';$('editCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelEdit(){$('editCard').style.display='none';$('editMsg').innerHTML='';}
+async function updateQuestion(){
+ let q={id:$('editId').value,lesson:$('editLesson').value.trim(),topic:$('editTopic').value.trim(),question_group:$('editGroup').value.trim(),question:$('editQuestion').value.trim(),options:[$('editA').value.trim(),$('editB').value.trim(),$('editC').value.trim(),$('editD').value.trim(),$('editE').value.trim()],correct:$('editCorrect').value,difficulty:$('editDifficulty').value,explanation:$('editExplanation').value.trim()};
+ if(!q.id||!q.lesson||!q.question||q.options.some(function(x){return !x})){ $('editMsg').innerHTML='<div class="adminMsg err">❌ Ders, soru ve 5 şık zorunlu.</div>';return; }
+ try{
+   let r=await fetch(API,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(q)});
+   let data=await r.json().catch(function(){return {}});
+   if(!r.ok)throw Error(data.error||'Güncelleme başarısız.');
+   $('editMsg').innerHTML='<div class="adminMsg ok">✅ Soru güncellendi.</div>';
+   await loadBank();
+   setTimeout(cancelEdit,500);
+ }catch(e){$('editMsg').innerHTML='<div class="adminMsg err">❌ '+esc(e.message)+'</div>'}
+}
+async function deleteQuestion(id){
+ let q=bank.find(function(x){return String(x.id)===String(id)});
+ if(!q)return;
+ if(!confirm('Bu soruyu kalıcı olarak silmek istediğine emin misin?\\n\\n'+q.question))return;
+ try{
+   let r=await fetch(API,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
+   let data=await r.json().catch(function(){return {}});
+   if(!r.ok)throw Error(data.error||'Silme başarısız.');
+   await loadBank();
+ }catch(e){alert('❌ '+e.message)}
+}
+async function loadBank(){try{let r=await fetch(API);if(!r.ok)throw Error('API '+r.status);bank=await r.json();$('bankCount').innerHTML='<b>'+bank.length+'</b> soru kayıtlı.';renderBank()}catch(e){$('bankCount').innerHTML='<span class="err">❌ '+esc(e.message)+'</span>'}}
+function fmtDate(v){if(!v)return '-';try{return new Date(v).toLocaleString('tr-TR',{dateStyle:'medium',timeStyle:'short'})}catch(e){return v}}
+async function loadFeedback(){
+  try{
+    $('feedbackMsg').innerHTML='<div class="adminMsg">⏳ Öneriler yükleniyor...</div>';
+    let r=await fetch('/api/admin-feedback');let data=await r.json().catch(function(){return {}});
+    if(!r.ok)throw Error(data.error||'Yönetici yetkisi gerekli.');
+    let list=data.feedback||[];
+    $('feedbackList').innerHTML=list.map(function(f){
+      return '<div style="padding:15px 0;border-bottom:1px solid #e5e7eb"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><strong>'+esc(f.email||'E-posta yok')+'</strong><small style="color:#64748b">'+fmtDate(f.created_at)+'</small></div><p style="margin:8px 0 0;white-space:pre-wrap">'+esc(f.message)+'</p></div>';
+    }).join('')||'<p style="color:#64748b">Henüz öneri gönderilmemiş.</p>';
+    $('feedbackMsg').innerHTML='<div class="adminMsg ok">✅ '+list.length+' öneri gösteriliyor.</div>';
+  }catch(e){
+    $('feedbackMsg').innerHTML='<div class="adminMsg err">❌ '+esc(e.message)+'</div>';
+    $('feedbackList').innerHTML='';
+  }
+}
+function makeLineChart(items,labelKey){
+ const width=720,height=250,padL=42,padR=18,padT=18,padB=42;
+ const vals=items.map(x=>Number(x.unique_users)||0),max=Math.max(1,...vals),step=items.length>1?(width-padL-padR)/(items.length-1):0;
+ const points=items.map((x,i)=>({x:padL+i*step,y:padT+(height-padT-padB)*(1-(Number(x.unique_users)||0)/max),v:Number(x.unique_users)||0,label:x[labelKey]}));
+ const poly=points.map(p=>p.x+','+p.y).join(' ');
+ const dots=points.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#60a5fa"><title>'+esc(p.label)+': '+p.v+'</title></circle>').join('');
+ const labels=points.map(p=>'<text x="'+p.x+'" y="'+(height-14)+'" text-anchor="middle" fill="#8b949e" font-size="11">'+esc(p.label)+'</text>').join('');
+ const grid=[0,.25,.5,.75,1].map(r=>{let y=padT+(height-padT-padB)*(1-r);let v=Math.round(max*r);return '<line x1="'+padL+'" y1="'+y+'" x2="'+(width-padR)+'" y2="'+y+'" stroke="#30363d"/><text x="4" y="'+(y+4)+'" fill="#8b949e" font-size="11">'+v+'</text>'}).join('');
+ return '<div style="overflow-x:auto"><svg viewBox="0 0 '+width+' '+height+'" style="width:100%;min-width:520px;height:250px"><rect x="0" y="0" width="'+width+'" height="'+height+'" fill="#0d1117" rx="10"/>'+grid+'<polyline points="'+poly+'" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+dots+labels+'</svg></div>';
+}
+function renderActivity(data){
+ const weeks=(data.weekly||[]).slice(-12),months=(data.monthly||[]).slice(-12);
+ const weekRows=weeks.map(x=>'<tr><td>'+esc(x.week)+'</td><td>'+esc(x.unique_users)+'</td></tr>').join('')||'<tr><td colspan="2">Henüz veri yok.</td></tr>';
+ const monthRows=months.map(x=>'<tr><td>'+esc(x.month)+'</td><td>'+esc(x.unique_users)+'</td></tr>').join('')||'<tr><td colspan="2">Henüz veri yok.</td></tr>';
+ $('activityReport').innerHTML='<div class="adminCard" style="margin:0"><h3>📊 Kullanıcı Aktivitesi</h3><p style="color:#8b949e;font-size:13px;margin:4px 0 14px">Aynı kişi dönem içinde kaç kez girerse girsin 1 kişi sayılır.</p><div style="display:grid;grid-template-columns:1fr;gap:18px;align-items:start"><div><h4 style="margin:0 0 8px">Haftalık</h4><div style="overflow:auto"><table class="userTable" style="width:100%;font-size:13px"><thead><tr><th>Hafta</th><th>Kişi</th></tr></thead><tbody>'+weekRows+'</tbody></table></div></div><div><h4 style="margin:0 0 8px">Aylık</h4><div style="overflow:auto"><table class="userTable" style="width:100%;font-size:13px"><thead><tr><th>Ay</th><th>Kişi</th></tr></thead><tbody>'+monthRows+'</tbody></table></div></div></div></div>';
+}
+async function showUserDetail(id){
+ try{
+  $('userDetail').innerHTML='<div class="userDetail">⏳ Kullanıcı detayları yükleniyor...</div>';
+  const r=await fetch('/api/admin-user-detail?user_id='+encodeURIComponent(id));const d=await r.json();
+  if(!r.ok)throw Error(d.error||'Detay alınamadı');
+  const rows=(d.stats||[]).map(x=>{const rate=x.answers?Math.round(x.correct/x.answers*100):0;return '<div class="detailItem"><b>'+esc(x.lesson||'Ders yok')+'</b><span>'+esc(x.topic||'Konu yok')+'</span><br><small>'+x.answers+' cevap · '+x.unique_questions+' farklı soru · '+x.correct+' doğru / '+x.wrong+' yanlış · <strong>%'+rate+'</strong> başarı</small></div>'}).join('');
+  $('userDetail').innerHTML='<div class="userDetail"><div style="display:flex;justify-content:space-between;gap:10px"><div><h3 style="margin:0">'+esc(d.user.email||d.user.name||'Kullanıcı')+'</h3><small>İlk: '+fmtDate(d.user.first_seen_at)+' · Son: '+fmtDate(d.user.last_seen_at)+'</small></div><button class="adminBtn" id="closeUserDetail">Kapat</button></div><h4>Ders / Konu Başarıları</h4><div class="detailGrid">'+(rows||'<p>Henüz soru çözülmemiş.</p>')+'</div></div>'; $('closeUserDetail').onclick=function(){$('userDetail').innerHTML=''};
+ }catch(e){$('userDetail').innerHTML='<div class="adminMsg err">❌ '+esc(e.message)+'</div>'}
+}
+async function loadUsers(){
+  try{
+    $('usersMsg').innerHTML='<div class="adminMsg">⏳ Kullanıcılar yükleniyor...</div>';
+    let r=await fetch('/api/admin-users');let data=await r.json().catch(function(){return {}});
+    if(!r.ok)throw Error(data.error||'Yönetici yetkisi gerekli.');
+    let t=data.totals||{};
+    $('uRegistered').textContent=t.registered||0;$('uActive').textContent=t.active_solvers||0;$('uAnswers').textContent=t.total_answers||0;$('uQuestions').textContent=t.unique_questions||0;
+    $('usersList').innerHTML=(data.users||[]).map(function(u){
+      let rate=u.total_answers?Math.round((u.correct_answers/u.total_answers)*100):0;
+      return '<tr><td><button class="userRowBtn" data-user-id="'+esc(u.user_id)+'">'+esc(u.email||'E-posta yok')+'</button><small>'+esc(u.name||'')+'</small></td><td>'+fmtDate(u.first_seen_at)+'</td><td>'+fmtDate(u.last_seen_at)+'</td><td><span class="userBadge">'+(u.unique_questions||0)+'</span> soru<br><small>'+ (u.total_answers||0)+' cevap</small></td><td><span class="userBadge">'+(u.topics_solved||0)+'</span></td><td><span class="userBadge">'+(u.lessons_solved||0)+'</span></td><td>'+(u.correct_answers||0)+' doğru / '+(u.wrong_answers||0)+' yanlış<br><small>%'+rate+' başarı</small></td></tr>';
+    }).join('')||'<tr><td colspan="7">Henüz kullanıcı kaydı yok.</td></tr>';
+    document.querySelectorAll('.userRowBtn').forEach(function(btn){btn.onclick=function(){showUserDetail(btn.dataset.userId)}});
+    $('usersMsg').innerHTML='<div class="adminMsg ok">✅ '+(data.users||[]).length+' hesap gösteriliyor.</div>'; renderActivity(data);
+  }catch(e){$('usersMsg').innerHTML='<div class="adminMsg err">❌ '+esc(e.message)+'</div>';$('usersList').innerHTML='<tr><td colspan="7">Kullanıcı verisi alınamadı.</td></tr>'}
+}
+$('file').addEventListener('change',function(){let f=this.files[0];if(!f)return;let r=new FileReader();r.onload=function(){$('bulk').value=r.result;checkBulk()};r.readAsText(f)});
+loadBank();
+loadUsers();
+loadFeedback();
+</script></body></html>

@@ -1,0 +1,20 @@
+{
+  "name": "DUSCamp",
+  "short_name": "DUSCamp",
+  "description": "DUS soru çözme, yanlışlarım, favoriler ve kişisel istatistikler.",
+  "lang": "tr-TR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f7fb",
+  "theme_color": "#123f78",
+  "icons": [
+    {
+      "src": "/dentatest-favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

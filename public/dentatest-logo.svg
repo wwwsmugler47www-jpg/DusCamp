@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150" role="img" aria-labelledby="title desc">
+<title id="title">DUSCamp</title><desc id="desc">DUSCamp diş ve onay işareti logosu</desc>
+<defs>
+  <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#123f78"/><stop offset="1" stop-color="#1764b4"/></linearGradient>
+  <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#10b8c2"/><stop offset="1" stop-color="#00a7b7"/></linearGradient>
+</defs>
+<g transform="translate(4 8)">
+  <path d="M16 12h112c33 0 59 15 76 43l-31 31c-9-18-24-29-45-29H65c-19 0-31 12-29 31l7 48c3 20 11 31 24 31 12 0 17-10 22-28 5-19 10-30 21-30s16 11 21 30c5 18 10 28 22 28 13 0 21-11 24-31l6-38 30-30-3 74c-2 36-21 67-52 80-11 5-20 7-28 7-18 0-32-10-42-30-10 20-24 30-42 30-8 0-17-2-28-7C20 209 5 178 4 142L0 57C-1 31 5 12 16 12Z" fill="url(#blue)"/>
+  <path d="M91 107l25 24 66-66" fill="none" stroke="url(#teal)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<text x="205" y="103" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="800" letter-spacing="-2">
+  <tspan fill="#174d8f">DUS</tspan><tspan fill="#10aeb8">Camp</tspan>
+</text>
+</svg>

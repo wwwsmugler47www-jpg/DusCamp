@@ -1,0 +1,1 @@
+CREATE TABLE questions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), lesson text NOT NULL, topic text, question text NOT NULL, option_a text NOT NULL, option_b text NOT NULL, option_c text NOT NULL, option_d text NOT NULL, option_e text NOT NULL, correct text NOT NULL, difficulty text NOT NULL DEFAULT 'Orta', explanation text, created_at timestamptz NOT NULL DEFAULT now())

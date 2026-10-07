@@ -1,0 +1,26 @@
+[ai]
+required = true
+
+[auth]
+enabled = true
+providers = ["email"]
+
+[db.tables.user_question_history]
+read = "own"
+write = "own"
+
+[db.tables.user_favorites]
+read = "own"
+write = "own"
+
+[db.tables.user_registry]
+read = "public"
+write = "own"
+
+[db.tables.user_feedback]
+read = "own"
+write = "own"
+
+[db.tables.user_login_events]
+read = "own"
+write = "own"
