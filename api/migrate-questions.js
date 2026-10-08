@@ -87,7 +87,13 @@ export default async function(req, res) {
           body: JSON.stringify(rows),
         });
       } catch (e) {
-        const extra = [e?.code && ("code="+e.code), e?.details && ("details="+e.details), e?.hint && ("hint="+e.hint)].filter(Boolean).join(" | ");
+        const extra = [
+          e?.status && ("status="+e.status),
+          e?.code && ("code="+e.code),
+          e?.details && ("details="+e.details),
+          e?.hint && ("hint="+e.hint),
+          e?.raw && ("raw="+String(e.raw).slice(0, 800))
+        ].filter(Boolean).join(" | ");
         throw new Error("Supabase kayıt hatası (sorular " + (offset + 1) + "-" + (offset + rows.length) + "): " + (e.message || e) + (extra ? " | " + extra : ""));
       }
     }
