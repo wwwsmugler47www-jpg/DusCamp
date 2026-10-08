@@ -141,15 +141,19 @@ export default async function(req, res) {
       }
     }
 
-    const imported = await insertRowsSafely(rows, offset);
+    const imported = await insertRowsSafely(rows, 0);
+    const skippedCount = skipped.length;
     const nextOffset = offset + rows.length;
 
     return res.status(200).json({
       ok: true,
       offset,
-      imported: rows.length,
+      imported,
+      skipped: skippedCount,
+      skipped_rows: skipped,
+      fetched: rows.length,
       done: !!sourceData.done,
-      next_offset: offset + rows.length,
+      next_offset: nextOffset,
     });
   } catch (err) {
     console.error("migration error:", err);
