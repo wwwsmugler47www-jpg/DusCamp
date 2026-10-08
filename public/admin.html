@@ -95,6 +95,18 @@ body{background:#0d1117;color:#e6edf3}.adminWrap{max-width:1000px;margin:24px au
 
 <script>
 const API='/api/questions';
+let adminEmail='';
+async function getAdminHeaders(){
+  const h={'Content-Type':'application/json'};
+  try{
+    if(!adminEmail && window.hatchable&&window.hatchable.auth){
+      const session=await window.hatchable.auth.getSession();
+      adminEmail=String(session&&session.user&&(session.user.email||session.user.name)||'').trim();
+    }
+  }catch(_){}
+  if(adminEmail)h['x-user-email']=adminEmail;
+  return h;
+}
 function showAdminTab(tab){
   document.querySelectorAll('.adminSection').forEach(function(el){el.classList.remove('active')});
   document.querySelectorAll('.adminMenu button').forEach(function(el){el.classList.toggle('active',el.dataset.adminTab===tab)});
@@ -291,9 +303,24 @@ async function startMigration(){
 }
 async function saveBulk(){
   if(!imported.length)return;
-  $('saveBulk').disabled=true;let ok=0;
-  for(let q of imported){try{let r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(q)});if(r.ok)ok++}catch(e){}}
-  $('bulkMsg').innerHTML='<div class="adminMsg ok">🎉 '+ok+'/'+imported.length+' soru kaydedildi.</div>';imported=[];loadBank();
+  $('saveBulk').disabled=true;let ok=0,errors=[];
+  const headers=await getAdminHeaders();
+  for(let q of imported){
+    try{
+      let r=await fetch(API,{method:'POST',headers,body:JSON.stringify(q)});
+      if(r.ok)ok++;
+      else{
+        let d=await r.json().catch(()=>({}));
+        errors.push(d.error||('HTTP '+r.status));
+      }
+    }catch(e){errors.push(e.message||'Bağlantı hatası')}
+  }
+  if(ok===imported.length){
+    $('bulkMsg').innerHTML='<div class="adminMsg ok">🎉 '+ok+'/'+imported.length+' soru kaydedildi.</div>';
+  }else{
+    $('bulkMsg').innerHTML='<div class="adminMsg err">❌ '+ok+'/'+imported.length+' soru kaydedildi.<br><small>'+esc(errors[0]||'Bilinmeyen hata')+'</small></div>';
+  }
+  imported=[];await loadBank();
 }
 async function saveOne(){
   let q={lesson:$('lesson').value.trim()||'Genel',topic:$('topic').value.trim()||'Genel',question_group:$('group').value.trim(),question:$('question').value.trim(),options:[$('a').value,$('b').value,$('c').value,$('d').value,$('e').value],correct:$('correct').value,difficulty:$('difficulty').value,explanation:$('explanation').value.trim()};
