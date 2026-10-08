@@ -41,7 +41,7 @@ export default async function(req, res) {
     }
 
     const offset = Math.max(0, Number.parseInt(req.body?.offset ?? req.query?.offset ?? "0", 10) || 0);
-    const limit = Math.min(500, Math.max(1, Number.parseInt(req.body?.limit ?? req.query?.limit ?? "500", 10) || 500));
+    const limit = Math.min(50, Math.max(1, Number.parseInt(req.body?.limit ?? req.query?.limit ?? "50", 10) || 50));
 
     const source = await fetch(SOURCE_URL + "?token=" + encodeURIComponent(MIGRATION_TOKEN) + "&offset=" + offset + "&limit=" + limit);
     const sourceText = await source.text();
@@ -73,19 +73,16 @@ export default async function(req, res) {
     }));
 
     if (rows.length) {
-      // Supabase/PostgREST can reject a very large JSON insert. Write in small
-      // chunks so a single bad/large request cannot abort the whole migration.
-      for (let i = 0; i < rows.length; i += 50) {
-        const chunk = rows.slice(i, i + 50);
-        try {
-          await supabase("questions?on_conflict=id", {
-            method: "POST",
-            headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-            body: JSON.stringify(chunk),
-          });
-        } catch (e) {
-          throw new Error("Supabase kayıt hatası (sorular " + (offset + i + 1) + "-" + (offset + i + chunk.length) + "): " + (e.message || e));
-        }
+      // Keep each Vercel invocation short: one source page and one Supabase write.
+      // The admin page persists next_offset and calls this endpoint repeatedly.
+      try {
+        await supabase("questions?on_conflict=id", {
+          method: "POST",
+          headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+          body: JSON.stringify(rows),
+        });
+      } catch (e) {
+        throw new Error("Supabase kayıt hatası (sorular " + (offset + 1) + "-" + (offset + rows.length) + "): " + (e.message || e));
       }
     }
 
