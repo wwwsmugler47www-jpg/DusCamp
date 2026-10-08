@@ -1,20 +1,6 @@
-import { db } from "hatchable";
-
-export const access = "user";
-export const methods = ["POST"];
-
-export default async function(req,res){
-  const userId=req.user.id;
-  const email=req.user.email||"";
-  const message=String(req.body?.message||"").trim();
-
-  if(!message) return res.status(400).json({error:"Öneri boş olamaz."});
-  if(message.length>1000) return res.status(400).json({error:"Öneri en fazla 1000 karakter olabilir."});
-
-  await db.query(
-    "INSERT INTO user_feedback(user_id,email,message) VALUES($1,$2,$3)",
-    [userId,email,message]
-  );
-
-  return res.json({ok:true});
-}
+function normalizeSupabaseUrl(value){const raw=String(value||"").trim().replace(/\/+$/,"");if(!raw)return"";try{return new URL(raw).origin}catch(_){return""}}
+const SUPABASE_URL=normalizeSupabaseUrl(process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL);
+const SERVICE_KEY=String(process.env.SUPABASE_SERVICE_ROLE_KEY||"").trim();
+function cookieValue(req,name){const raw=String(req.headers?.cookie||"");for(const part of raw.split(";")){const i=part.indexOf("=");if(i>0&&part.slice(0,i).trim()===name)return decodeURIComponent(part.slice(i+1));}return""}
+async function getUser(req){const token=cookieValue(req,"dus_access_token");if(!token)return null;const r=await fetch(SUPABASE_URL+"/auth/v1/user",{headers:{apikey:SERVICE_KEY,Authorization:"Bearer "+token}});if(!r.ok)return null;return await r.json()}
+export default async function(req,res){if(req.method!=="POST")return res.status(405).json({error:"Method not allowed"});const user=await getUser(req);if(!user)return res.status(401).json({error:"Giriş yapmanız gerekiyor."});const message=String(req.body?.message||"").trim();if(!message)return res.status(400).json({error:"Öneri boş olamaz."});if(message.length>1000)return res.status(400).json({error:"Öneri en fazla 1000 karakter olabilir."});try{const r=await fetch(SUPABASE_URL+"/rest/v1/user_feedback",{method:"POST",headers:{apikey:SERVICE_KEY,Authorization:"Bearer "+SERVICE_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({user_id:user.id,email:user.email||"",message})});if(!r.ok)throw new Error(await r.text());return res.json({ok:true})}catch(e){return res.status(500).json({error:"Öneri kaydedilemedi: "+(e.message||e)})}}
