@@ -73,11 +73,20 @@ export default async function(req, res) {
     }));
 
     if (rows.length) {
-      await supabase("questions?on_conflict=id", {
-        method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify(rows),
-      });
+      // Supabase/PostgREST can reject a very large JSON insert. Write in small
+      // chunks so a single bad/large request cannot abort the whole migration.
+      for (let i = 0; i < rows.length; i += 50) {
+        const chunk = rows.slice(i, i + 50);
+        try {
+          await supabase("questions?on_conflict=id", {
+            method: "POST",
+            headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+            body: JSON.stringify(chunk),
+          });
+        } catch (e) {
+          throw new Error("Supabase kayıt hatası (sorular " + (offset + i + 1) + "-" + (offset + i + chunk.length) + "): " + (e.message || e));
+        }
+      }
     }
 
     return res.status(200).json({
