@@ -1,34 +1,7 @@
-import { db } from "hatchable";
-export const access = "user";
-export const methods = ["GET","POST","DELETE"];
-export default async function(req,res){
- const userId=req.user.id;
- const userEmail=req.user.email||"";
- const userName=req.user.name||"";
- await db.query("INSERT INTO user_registry(user_id,email,name) VALUES($1,$2,$3) ON CONFLICT(user_id) DO UPDATE SET email=EXCLUDED.email,name=EXCLUDED.name,last_seen_at=NOW()",[userId,userEmail,userName]);
- await db.query("INSERT INTO user_login_events(user_id) VALUES($1)",[userId]);
- if(req.method==="GET"){
-  const [h,f]=await Promise.all([
-   db.query("SELECT id,question_id,lesson,topic,is_correct,answered_at FROM user_question_history WHERE user_id=$1 ORDER BY answered_at DESC LIMIT 20000",[userId]),
-   db.query("SELECT question_id,created_at FROM user_favorites WHERE user_id=$1 ORDER BY created_at DESC",[userId])
-  ]);
-  const wrong=await db.query("SELECT q.id,q.lesson,q.topic,q.question_group,q.question,q.option_a,q.option_b,q.option_c,q.option_d,q.option_e,q.correct,h.answered_at FROM questions q JOIN (SELECT DISTINCT ON(question_id) question_id,lesson,topic,answered_at,is_correct FROM user_question_history WHERE user_id=$1 ORDER BY question_id,answered_at DESC) h ON h.question_id=q.id WHERE h.is_correct=false ORDER BY h.answered_at DESC LIMIT 200",[userId]);const fav=await db.query("SELECT q.id,q.lesson,q.topic,q.question_group,q.question,q.option_a,q.option_b,q.option_c,q.option_d,q.option_e,q.correct,f.created_at FROM questions q JOIN user_favorites f ON f.question_id=q.id WHERE f.user_id=$1 ORDER BY f.created_at DESC",[userId]);return res.json({history:h.rows,favorites:f.rows,wrongQuestions:wrong.rows,favoriteQuestions:fav.rows,user:req.user});
- }
- const b=req.body||{};
- if(req.method==="POST"&&b.action==="history"){
-  if(!b.question_id)return res.status(400).json({error:"question_id gerekli"});
-  await db.query("INSERT INTO user_question_history(user_id,question_id,lesson,topic,is_correct) VALUES($1,$2,$3,$4,$5)",[userId,b.question_id,b.lesson||"",b.topic||"",!!b.is_correct]);
-  return res.json({ok:true});
- }
- if(req.method==="POST"&&b.action==="favorite"){
-  if(!b.question_id)return res.status(400).json({error:"question_id gerekli"});
-  await db.query("INSERT INTO user_favorites(user_id,question_id) VALUES($1,$2) ON CONFLICT(user_id,question_id) DO NOTHING",[userId,b.question_id]);
-  return res.json({ok:true});
- }
- if(req.method==="DELETE"){
-  if(!b.question_id)return res.status(400).json({error:"question_id gerekli"});
-  await db.query("DELETE FROM user_favorites WHERE user_id=$1 AND question_id=$2",[userId,b.question_id]);
-  return res.json({ok:true});
- }
- return res.status(400).json({error:"Geçersiz işlem"});
-}
+function normalizeSupabaseUrl(value){const raw=String(value||"").trim().replace(/\/+$/,"");if(!raw)return"";try{return new URL(raw).origin}catch(_){return""}}
+const SUPABASE_URL=normalizeSupabaseUrl(process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL);
+const SERVICE_KEY=String(process.env.SUPABASE_SERVICE_ROLE_KEY||"").trim();
+function cookieValue(req,name){const raw=String(req.headers?.cookie||"");for(const part of raw.split(";")){const i=part.indexOf("=");if(i>0&&part.slice(0,i).trim()===name)return decodeURIComponent(part.slice(i+1));}return""}
+async function getUser(req){const token=cookieValue(req,"dus_access_token");if(!token)return null;const r=await fetch(SUPABASE_URL+"/auth/v1/user",{headers:{apikey:SERVICE_KEY,Authorization:"Bearer "+token}});if(!r.ok)return null;return await r.json()}
+async function sb(path,options={}){const r=await fetch(SUPABASE_URL+"/rest/v1/"+path,{...options,headers:{apikey:SERVICE_KEY,Authorization:"Bearer "+SERVICE_KEY,"Content-Type":"application/json",...(options.headers||{})}});const raw=await r.text();let d;try{d=raw?JSON.parse(raw):null}catch(_){d=raw}if(!r.ok){const e=new Error(d?.message||d?.details||d?.hint||("Supabase "+r.status));e.status=r.status;throw e}return d}
+export default async function(req,res){try{const user=await getUser(req);if(!user)return res.status(401).json({error:"Giriş yapmanız gerekiyor."});const userId=user.id,email=user.email||"",name=user.user_metadata?.name||user.user_metadata?.full_name||"";await sb("user_registry",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:userId,email,name})});if(req.method==="GET"){const h=await sb("user_question_history?select=id,question_id,lesson,topic,is_correct,answered_at&user_id=eq."+encodeURIComponent(userId)+"&order=answered_at.desc&limit=20000");const f=await sb("user_favorites?select=question_id,created_at&user_id=eq."+encodeURIComponent(userId)+"&order=created_at.desc");const wrongIds=[...new Set((h||[]).filter(x=>x.is_correct===false).map(x=>String(x.question_id)))];let wrongQuestions=[];if(wrongIds.length)wrongQuestions=await sb("questions?select=id,lesson,topic,question_group,question,option_a,option_b,option_c,option_d,option_e,correct&id=in.("+wrongIds.join(",")+")").catch(()=>[]);const favIds=[...new Set((f||[]).map(x=>String(x.question_id)))];let favoriteQuestions=[];if(favIds.length)favoriteQuestions=await sb("questions?select=id,lesson,topic,question_group,question,option_a,option_b,option_c,option_d,option_e,correct&id=in.("+favIds.join(",")+")").catch(()=>[]);return res.json({history:h||[],favorites:f||[],wrongQuestions:wrongQuestions||[],favoriteQuestions:favoriteQuestions||[],user})}const b=req.body||{};if(req.method==="POST"&&b.action==="history"){if(!b.question_id)return res.status(400).json({error:"question_id gerekli"});await sb("user_question_history",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({user_id:userId,question_id:b.question_id,lesson:b.lesson||"",topic:b.topic||"",is_correct:!!b.is_correct})});await sb("user_registry?user_id=eq."+encodeURIComponent(userId),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({email,name,last_seen_at:new Date().toISOString()})}).catch(()=>{});return res.json({ok:true})}if(req.method==="POST"&&b.action==="favorite"){if(!b.question_id)return res.status(400).json({error:"question_id gerekli"});await sb("user_favorites",{method:"POST",headers:{Prefer:"resolution=ignore-duplicates,return=minimal"},body:JSON.stringify({user_id:userId,question_id:b.question_id})});return res.json({ok:true})}if(req.method==="DELETE"){if(!b.question_id)return res.status(400).json({error:"question_id gerekli"});await sb("user_favorites?user_id=eq."+encodeURIComponent(userId)+"&question_id=eq."+encodeURIComponent(b.question_id),{method:"DELETE"});return res.json({ok:true})}return res.status(405).json({error:"Method not allowed"})}catch(e){console.error("user-data error:",e);return res.status(e.status||500).json({error:e.message||"Kullanıcı verileri alınamadı."})}}
