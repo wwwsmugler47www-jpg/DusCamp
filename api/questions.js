@@ -1,5 +1,11 @@
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+function normalizeSupabaseUrl(value) {
+  const raw = String(value || "").trim().replace(/\/+$/, "");
+  if (!raw) return "";
+  // Vercel variables are sometimes pasted with /rest/v1 included.
+  return raw.replace(/\/rest\/v1$/i, "").replace(/\/+$/, "");
+}
+const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL);
+const SUPABASE_SERVICE_ROLE_KEY = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 
 function supabaseHeaders() {
   return {
@@ -11,7 +17,10 @@ function supabaseHeaders() {
 
 async function supabase(path, options = {}) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("Supabase ortam değişkenleri eksik.");
+    throw new Error("Supabase ortam değişkenleri eksik. Vercel'de SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY kontrol edilmeli.");
+  }
+  if (!/^https:\/\//i.test(SUPABASE_URL) || /supabase\.com\/dashboard/i.test(SUPABASE_URL)) {
+    throw new Error("SUPABASE_URL hatalı görünüyor. Vercel'e Supabase Project URL girilmeli (https://....supabase.co); Dashboard URL'si değil.");
   }
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...options,
