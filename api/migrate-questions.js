@@ -75,7 +75,7 @@ export default async function(req, res) {
     }
 
     const offset = Math.max(0, Number.parseInt(req.body?.offset ?? req.query?.offset ?? "0", 10) || 0);
-    const limit = Math.min(50, Math.max(1, Number.parseInt(req.body?.limit ?? req.query?.limit ?? "50", 10) || 50));
+    const limit = Math.min(20, Math.max(1, Number.parseInt(req.body?.limit ?? req.query?.limit ?? "50", 10) || 50));
 
     const source = await fetch(SOURCE_URL + "?token=" + encodeURIComponent(MIGRATION_TOKEN) + "&offset=" + offset + "&limit=" + limit);
     const sourceText = await source.text();
@@ -90,7 +90,8 @@ export default async function(req, res) {
       : (Array.isArray(sourceData.rows?.rows) ? sourceData.rows.rows : []);
 
     const rows = sourceRows.map((r) => ({
-      id: r.id,
+      // Match the known-good /api/questions POST payload exactly.
+      // Let Supabase generate its own primary key and created_at default.
       lesson: r.lesson,
       topic: r.topic || "",
       question_group: r.question_group || "",
@@ -103,7 +104,6 @@ export default async function(req, res) {
       correct: r.correct,
       difficulty: r.difficulty || "Orta",
       explanation: r.explanation || "",
-      created_at: r.created_at || new Date().toISOString(),
     }));
 
     if (rows.length) {
