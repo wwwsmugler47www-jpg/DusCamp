@@ -61,7 +61,7 @@ export default async function(req, res) {
       : (Array.isArray(sourceData.rows?.rows) ? sourceData.rows.rows : []);
 
     const rows = sourceRows.map((r) => ({
-      // Supabase yeni kaydın primary key değerini kendi üretir.
+      id: r.id,
       lesson: r.lesson,
       topic: r.topic || "",
       question_group: r.question_group || "",
