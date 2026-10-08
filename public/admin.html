@@ -13,7 +13,15 @@ body{background:#0d1117;color:#e6edf3}.adminWrap{max-width:1000px;margin:24px au
 <button data-admin-tab="bank" onclick="showAdminTab('bank')">📚 Soru Bankası</button>
 <button data-admin-tab="add" onclick="showAdminTab('add')">➕ Soru Ekle</button>
 <button data-admin-tab="bulk" onclick="showAdminTab('bulk')">📥 Toplu Yükle</button>
+<button data-admin-tab="migrate" onclick="showAdminTab('migrate')">🔄 Soru Bankasını Aktar</button>
 </div>
+
+<section class="adminCard adminSection" id="migrateSection">
+<h2>🔄 11.024 Soruyu Yeni Veritabanına Aktar</h2>
+<p style="color:#8b949e">Hatchable'daki mevcut soru bankası yeni Supabase veritabanına güvenli şekilde aktarılır. Mevcut kayıtlar tekrar çalıştırılırsa üzerine yazılmaz.</p>
+<div class="adminBtns"><button class="adminBtn primary" id="startMigrationBtn" onclick="startMigration()">🚀 Aktarımı Başlat</button></div>
+<div id="migrationMsg" class="adminMsg" style="display:none"></div>
+</section>
 
 <section class="adminCard adminSection active" id="overviewSection">
 <h2>📊 Genel Bakış</h2>
@@ -90,7 +98,7 @@ const API='/api/questions';
 function showAdminTab(tab){
   document.querySelectorAll('.adminSection').forEach(function(el){el.classList.remove('active')});
   document.querySelectorAll('.adminMenu button').forEach(function(el){el.classList.toggle('active',el.dataset.adminTab===tab)});
-  const map={overview:'overviewSection',users:'usersCard',feedback:'feedbackCard',bank:'bankSection',add:'addSection',bulk:'bulkSection'};
+  const map={overview:'overviewSection',users:'usersCard',feedback:'feedbackCard',bank:'bankSection',add:'addSection',bulk:'bulkSection',migrate:'migrateSection'};
   const el=document.getElementById(map[tab]||'overviewSection');
   if(el)el.classList.add('active');
   if(tab==='users')loadUsers();
@@ -242,6 +250,36 @@ function checkBulk(){
     $('bulkMsg').innerHTML='<div class="adminMsg ok">✅ Kontrol başarılı. '+imported.length+' soru geçerli ve kayda hazır.</div>';
   }catch(e){
     $('bulkMsg').innerHTML='<div class="adminMsg err">❌ '+esc(e.message)+'</div>';
+  }
+}
+let migrationRunning=false;
+async function startMigration(){
+  if(migrationRunning)return;
+  migrationRunning=true;
+  const btn=$('startMigrationBtn'),msg=$('migrationMsg');
+  btn.disabled=true; msg.style.display='block';
+  let offset=0,total=0;
+  try{
+    while(true){
+      msg.innerHTML='⏳ Aktarılıyor... <b>'+total+'</b> soru tamamlandı.';
+      const r=await fetch('/api/migrate-questions?token=DTX-2026-11024-TRANSFER-8f4c2a91',{
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offset:offset,limit:500})
+      });
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw Error(d.error||('Aktarım API hatası: '+r.status));
+      const imported=Number(d.imported||0);
+      total+=imported;
+      if(d.done||imported===0)break;
+      offset=Number(d.next_offset||offset+imported);
+    }
+    msg.className='adminMsg ok';
+    msg.innerHTML='🎉 <b>Aktarım tamamlandı.</b> Toplam <b>'+total+'</b> soru yeni Supabase veritabanına aktarıldı. Şimdi Soru Bankası sekmesini yenileyebilirsin.';
+    await loadBank();
+  }catch(e){
+    msg.className='adminMsg err';
+    msg.innerHTML='❌ Aktarım durdu: '+esc(e.message)+'<br>Tekrar başlatırsan kaldığı yerden devam eder.';
+  }finally{
+    migrationRunning=false;btn.disabled=false;
   }
 }
 async function saveBulk(){
