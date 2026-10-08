@@ -51,7 +51,11 @@ export default async function(req, res) {
       throw new Error("Hatchable soru aktarım kaynağı cevap vermedi.");
     }
 
-    const rows = sourceData.rows.map((r) => ({
+    const sourceRows = Array.isArray(sourceData.rows)
+      ? sourceData.rows
+      : (Array.isArray(sourceData.rows?.rows) ? sourceData.rows.rows : []);
+
+    const rows = sourceRows.map((r) => ({
       id: r.id,
       lesson: r.lesson,
       topic: r.topic || "",
