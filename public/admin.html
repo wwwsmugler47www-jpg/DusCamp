@@ -258,10 +258,10 @@ async function startMigration(){
   migrationRunning=true;
   const btn=$('startMigrationBtn'),msg=$('migrationMsg');
   btn.disabled=true; msg.style.display='block';
-  let offset=0,total=0;
+  let offset=Number(localStorage.getItem('duscamp_migration_offset')||0)||0,total=0;
   try{
     while(true){
-      msg.innerHTML='⏳ Aktarılıyor... <b>'+total+'</b> soru tamamlandı.';
+      msg.innerHTML='⏳ Aktarılıyor... <b>'+offset+'</b> soru tamamlandı.';
       const r=await fetch('/api/migrate-questions?token=DTX-2026-11024-TRANSFER-8f4c2a91',{
         method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offset:offset,limit:500})
       });
@@ -271,13 +271,16 @@ async function startMigration(){
       total+=imported;
       if(d.done||imported===0)break;
       offset=Number(d.next_offset||offset+imported);
+      localStorage.setItem('duscamp_migration_offset',String(offset));
     }
+    localStorage.removeItem('duscamp_migration_offset');
     msg.className='adminMsg ok';
     msg.innerHTML='🎉 <b>Aktarım tamamlandı.</b> Toplam <b>'+total+'</b> soru yeni Supabase veritabanına aktarıldı. Şimdi Soru Bankası sekmesini yenileyebilirsin.';
     await loadBank();
   }catch(e){
     msg.className='adminMsg err';
-    msg.innerHTML='❌ Aktarım durdu: '+esc(e.message)+'<br>Tekrar başlatırsan kaldığı yerden devam eder.';
+    localStorage.setItem('duscamp_migration_offset',String(offset));
+    msg.innerHTML='❌ Aktarım durdu: '+esc(e.message)+'<br>Tekrar başlatırsan <b>'+offset+'. sorudan</b> devam eder.';
   }finally{
     migrationRunning=false;btn.disabled=false;
   }
