@@ -104,6 +104,15 @@ async function getAdminHeaders(){
       adminEmail=String(session&&session.user&&(session.user.email||session.user.name)||'').trim();
     }
   }catch(_){}
+  if(!adminEmail){
+    const saved=localStorage.getItem('duscamp_admin_email')||'';
+    adminEmail=saved.trim();
+  }
+  if(!adminEmail){
+    adminEmail=prompt('Yönetici e-posta adresin:')||'';
+    adminEmail=adminEmail.trim();
+    if(adminEmail)localStorage.setItem('duscamp_admin_email',adminEmail);
+  }
   if(adminEmail)h['x-user-email']=adminEmail;
   return h;
 }
