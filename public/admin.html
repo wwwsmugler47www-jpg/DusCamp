@@ -263,7 +263,7 @@ async function startMigration(){
     while(true){
       msg.innerHTML='⏳ Aktarılıyor... <b>'+offset+'</b> soru tamamlandı.';
       const r=await fetch('/api/migrate-questions?token=DTX-2026-11024-TRANSFER-8f4c2a91',{
-        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offset:offset,limit:500})
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offset:offset,limit:50})
       });
       const d=await r.json().catch(()=>({}));
       if(!r.ok)throw Error(d.error||('Aktarım API hatası: '+r.status));
