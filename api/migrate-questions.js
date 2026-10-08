@@ -106,26 +106,43 @@ export default async function(req, res) {
       explanation: r.explanation || "",
     }));
 
-    if (rows.length) {
-      // Keep each Vercel invocation short: one source page and one Supabase write.
-      // The admin page persists next_offset and calls this endpoint repeatedly.
+    const skipped = [];
+
+    async function insertRowsSafely(batch, batchOffset) {
+      if (!batch.length) return 0;
       try {
         await supabase("questions", {
           method: "POST",
           headers: { Prefer: "return=minimal" },
-          body: JSON.stringify(rows),
+          body: JSON.stringify(batch),
         });
+        return batch.length;
       } catch (e) {
-        const extra = [
-          e?.status && ("status="+e.status),
-          e?.code && ("code="+e.code),
-          e?.details && ("details="+e.details),
-          e?.hint && ("hint="+e.hint),
-          e?.raw && ("raw="+String(e.raw).slice(0, 800))
-        ].filter(Boolean).join(" | ");
-        throw new Error("Supabase kayıt hatası (sorular " + (offset + 1) + "-" + (offset + rows.length) + "): " + (e.message || e) + (extra ? " | " + extra : ""));
+        // If a batch fails, split it automatically to isolate the exact bad row.
+        // This prevents one malformed question from stopping the full migration.
+        if (batch.length > 1) {
+          const mid = Math.floor(batch.length / 2);
+          const left = await insertRowsSafely(batch.slice(0, mid), batchOffset);
+          const right = await insertRowsSafely(batch.slice(mid), batchOffset + mid);
+          return left + right;
+        }
+
+        const sourceRow = sourceRows[batchOffset] || {};
+        skipped.push({
+          source_index: batchOffset,
+          source_id: sourceRow.id ?? null,
+          question_preview: String(sourceRow.question || "").slice(0, 120),
+          error: e?.message || String(e),
+          code: e?.code || null,
+          details: e?.details || null,
+          hint: e?.hint || null,
+        });
+        return 0;
       }
     }
+
+    const imported = await insertRowsSafely(rows, offset);
+    const nextOffset = offset + rows.length;
 
     return res.status(200).json({
       ok: true,
