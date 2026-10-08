@@ -45,6 +45,35 @@ export default async function(req, res) {
       return res.status(403).json({ error: "Yetkisiz" });
     }
 
+    if (String(req.query?.diagnose || req.body?.diagnose || "") === "1") {
+      const source = await fetch(SOURCE_URL + "?token=" + encodeURIComponent(MIGRATION_TOKEN) + "&offset=0&limit=1");
+      const sourceText = await source.text();
+      let sourceData = null;
+      try { sourceData = JSON.parse(sourceText); } catch (_) {}
+      let schema = null;
+      try {
+        const sr = await fetch(SUPABASE_URL + "/rest/v1/", {
+          headers: { apikey: SERVICE_KEY, Authorization: "Bearer " + SERVICE_KEY, Accept: "application/openapi+json" }
+        });
+        const st = await sr.text();
+        try { schema = JSON.parse(st); } catch (_) { schema = { status: sr.status, raw: st.slice(0, 1000) }; }
+      } catch (e) {
+        schema = { error: e.message };
+      }
+      const definition = schema?.definitions?.questions || schema?.components?.schemas?.questions || null;
+      return res.status(200).json({
+        ok: true,
+        source_status: source.status,
+        source_shape: sourceData ? Object.keys(sourceData) : [],
+        source_first_row_keys: Array.isArray(sourceData?.rows) ? Object.keys(sourceData.rows[0] || {}) : Object.keys(sourceData?.rows?.rows?.[0] || {}),
+        supabase_schema_status: schema?.status || 200,
+        questions_schema: definition ? {
+          properties: definition.properties || {},
+          required: definition.required || []
+        } : null
+      });
+    }
+
     const offset = Math.max(0, Number.parseInt(req.body?.offset ?? req.query?.offset ?? "0", 10) || 0);
     const limit = Math.min(50, Math.max(1, Number.parseInt(req.body?.limit ?? req.query?.limit ?? "50", 10) || 50));
 
