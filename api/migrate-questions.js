@@ -15,6 +15,8 @@ function normalizeSupabaseUrl(value) {
 const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL);
 const SERVICE_KEY = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 
+export const config = { maxDuration: 60 };
+
 async function supabase(path, options = {}) {
   if (!SUPABASE_URL || !SERVICE_KEY) throw new Error("Supabase ortam değişkenleri eksik.");
   const r = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
@@ -39,6 +41,10 @@ async function supabase(path, options = {}) {
 
 export default async function(req, res) {
   try {
+    if (String(req.query?.token || req.body?.token || "") !== MIGRATION_TOKEN) {
+      return res.status(403).json({ error: "Yetkisiz" });
+    }
+
     const offset = Math.max(0, Number.parseInt(req.body?.offset ?? req.query?.offset ?? "0", 10) || 0);
     const limit = Math.min(50, Math.max(1, Number.parseInt(req.body?.limit ?? req.query?.limit ?? "50", 10) || 50));
 
@@ -47,7 +53,7 @@ export default async function(req, res) {
     let sourceData;
     try { sourceData = JSON.parse(sourceText); } catch (_) { sourceData = null; }
     if (!source.ok || !sourceData?.rows) {
-      throw new Error("Hatchable soru aktarım kaynağı cevap vermedi.");
+      throw new Error("Hatchable kaynak hatası (" + source.status + "): " + sourceText.slice(0, 500));
     }
 
     const sourceRows = Array.isArray(sourceData.rows)
@@ -55,7 +61,7 @@ export default async function(req, res) {
       : (Array.isArray(sourceData.rows?.rows) ? sourceData.rows.rows : []);
 
     const rows = sourceRows.map((r) => ({
-      id: r.id,
+      // Supabase yeni kaydın primary key değerini kendi üretir.
       lesson: r.lesson,
       topic: r.topic || "",
       question_group: r.question_group || "",
