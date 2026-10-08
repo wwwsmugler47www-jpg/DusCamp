@@ -1,8 +1,14 @@
 function normalizeSupabaseUrl(value) {
   const raw = String(value || "").trim().replace(/\/+$/, "");
   if (!raw) return "";
-  // Vercel variables are sometimes pasted with /rest/v1 included.
-  return raw.replace(/\/rest\/v1$/i, "").replace(/\/+$/, "");
+  // Only use the Supabase project origin; never append REST paths twice.
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "";
+    return parsed.origin;
+  } catch (_) {
+    return "";
+  }
 }
 const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL);
 const SUPABASE_SERVICE_ROLE_KEY = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
