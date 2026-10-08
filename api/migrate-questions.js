@@ -39,44 +39,6 @@ async function supabase(path, options = {}) {
 
 export default async function(req, res) {
   try {
-    const diagnose = String(req.query?.diagnose || "") === "1";
-    if (req.method !== "POST" && !diagnose) return res.status(405).json({ error: "Method not allowed" });
-    if (String(req.query?.token || req.body?.token || "") !== MIGRATION_TOKEN) {
-      return res.status(403).json({ error: "Yetkisiz" });
-    }
-
-    if (diagnose) {
-      const source = await fetch(SOURCE_URL + "?token=" + encodeURIComponent(MIGRATION_TOKEN) + "&offset=0&limit=1");
-      const sourceText = await source.text();
-      let sourceData;
-      try { sourceData = JSON.parse(sourceText); } catch (_) { sourceData = null; }
-      const sourceRows = Array.isArray(sourceData?.rows) ? sourceData.rows : (Array.isArray(sourceData?.rows?.rows) ? sourceData.rows.rows : []);
-      if (!sourceRows.length) return res.status(500).json({ok:false,stage:"source",source_status:source.status,source_body:sourceText.slice(0,1000)});
-      const r = sourceRows[0];
-      const row = {
-        id:r.id, lesson:r.lesson, topic:r.topic||"", question_group:r.question_group||"",
-        question:r.question, option_a:r.option_a, option_b:r.option_b, option_c:r.option_c,
-        option_d:r.option_d, option_e:r.option_e, correct:r.correct,
-        difficulty:r.difficulty||"Orta", explanation:r.explanation||"",
-        created_at:r.created_at||new Date().toISOString()
-      };
-      try {
-        await supabase("questions", {
-          method:"POST",
-          headers:{Prefer:"return=minimal"},
-          body:JSON.stringify(row)
-        });
-        try { await supabase("questions?id=eq."+encodeURIComponent(row.id), {method:"DELETE"}); } catch (_) {}
-        return res.status(200).json({ok:true,stage:"write",message:"Tek örnek soru yazılıp geri silindi. Şema yazmaya uygun."});
-      } catch(e) {
-        return res.status(500).json({
-          ok:false,stage:"write",error:e?.message||String(e),
-          code:e?.code||null,details:e?.details||null,hint:e?.hint||null,
-          row_keys:Object.keys(row),sample_id:row.id
-        });
-      }
-    }
-
     const offset = Math.max(0, Number.parseInt(req.body?.offset ?? req.query?.offset ?? "0", 10) || 0);
     const limit = Math.min(50, Math.max(1, Number.parseInt(req.body?.limit ?? req.query?.limit ?? "50", 10) || 50));
 
@@ -113,9 +75,9 @@ export default async function(req, res) {
       // Keep each Vercel invocation short: one source page and one Supabase write.
       // The admin page persists next_offset and calls this endpoint repeatedly.
       try {
-        await supabase("questions?on_conflict=id", {
+        await supabase("questions", {
           method: "POST",
-          headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+          headers: { Prefer: "return=minimal" },
           body: JSON.stringify(rows),
         });
       } catch (e) {
