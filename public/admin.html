@@ -39,7 +39,7 @@ body{background:#0d1117;color:#e6edf3}.adminWrap{max-width:1000px;margin:24px au
 <h2>🤖 Hazır JSON Toplu Aktar</h2>
 <div class="adminForm">
 <select id="bulkLesson"><option value="">Ders seç (opsiyonel)</option><option>Anatomi</option><option>Fizyoloji</option><option>Biyokimya</option><option>Mikrobiyoloji</option><option>Histoloji ve Embriyoloji</option><option>Patoloji</option><option>Farmakoloji</option><option>Restoratif Diş Tedavisi</option><option>Protetik Diş Tedavisi</option><option>Endodonti</option><option>Periodontoloji</option><option>Ortodonti</option><option>Pedodonti</option><option>Ağız, Diş ve Çene Cerrahisi</option><option>Ağız, Diş ve Çene Radyolojisi</option></select>
-<input id="bulkGroup" placeholder="Toplu konu başlığı (opsiyonel)">
+<div style="position:relative"><input id="bulkGroup" placeholder="Toplu konu başlığı (opsiyonel)" style="padding-right:90px"><button type="button" class="adminBtn" onclick="clearBulkGroup()" style="position:absolute;right:4px;top:4px;padding:7px 10px">🗑️ Sil</button></div>
 <div style="position:relative"><textarea id="bulk" style="min-height:260px" placeholder="JSON çıktısını buraya yapıştır"></textarea><button type="button" class="adminBtn" onclick="clearBulkJson()" style="position:absolute;right:10px;top:10px">🗑️ Sil</button></div><input id="file" type="file" accept=".json,.txt"></div>
 <div class="adminBtns"><button class="adminBtn" onclick="checkBulk()">🔎 Soruları Kontrol Et</button><button class="adminBtn primary" id="saveBulk" onclick="saveBulk()" disabled>💾 Toplu Kaydet</button></div>
 <div id="bulkMsg"></div>
@@ -258,6 +258,7 @@ function parseQuestions(raw){
   }
   return fixed;
 }
+function clearBulkGroup(){ $('bulkGroup').value=''; }
 function clearBulkJson(){ $('bulk').value=''; $('file').value=''; imported=[]; $('saveBulk').disabled=true; $('bulkMsg').innerHTML=''; }
 function checkBulk(){
   imported=[];$('saveBulk').disabled=true;$('bulkMsg').innerHTML='';
