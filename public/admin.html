@@ -335,7 +335,7 @@ async function saveBulk(){
 }
 async function saveOne(){
   let q={lesson:$('lesson').value.trim()||'Genel',topic:$('topic').value.trim()||'Genel',question_group:$('group').value.trim(),question:$('question').value.trim(),options:[$('a').value,$('b').value,$('c').value,$('d').value,$('e').value],correct:$('correct').value,difficulty:$('difficulty').value,explanation:$('explanation').value.trim()};
-  try{let r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(q)});if(!r.ok)throw Error(await r.text());$('oneMsg').innerHTML='<div class="adminMsg ok">✅ Soru kaydedildi.</div>';loadBank()}catch(e){$('oneMsg').innerHTML='<div class="adminMsg err">❌ '+esc(e.message)+'</div>'}
+  try{let headers=await getAdminHeaders();let r=await fetch(API,{method:'POST',headers,body:JSON.stringify(q)});let d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||('HTTP '+r.status));$('oneMsg').innerHTML='<div class="adminMsg ok">✅ Soru kaydedildi.</div>';await loadBank()}catch(e){$('oneMsg').innerHTML='<div class="adminMsg err">❌ '+esc(e.message==='Failed to fetch'?'Sunucuya ulaşılamadı. /api/questions adresini ve Vercel dağıtımını kontrol edin.':e.message)+'</div>'}
 }
 function renderBank(){
  let t=($('search').value||'').toLowerCase();
@@ -359,7 +359,7 @@ async function updateQuestion(){
  let q={id:$('editId').value,lesson:$('editLesson').value.trim(),topic:$('editTopic').value.trim(),question_group:$('editGroup').value.trim(),question:$('editQuestion').value.trim(),options:[$('editA').value.trim(),$('editB').value.trim(),$('editC').value.trim(),$('editD').value.trim(),$('editE').value.trim()],correct:$('editCorrect').value,difficulty:$('editDifficulty').value,explanation:$('editExplanation').value.trim()};
  if(!q.id||!q.lesson||!q.question||q.options.some(function(x){return !x})){ $('editMsg').innerHTML='<div class="adminMsg err">❌ Ders, soru ve 5 şık zorunlu.</div>';return; }
  try{
-   let r=await fetch(API,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(q)});
+   let headers=await getAdminHeaders();let r=await fetch(API,{method:'PUT',headers,body:JSON.stringify(q)});
    let data=await r.json().catch(function(){return {}});
    if(!r.ok)throw Error(data.error||'Güncelleme başarısız.');
    $('editMsg').innerHTML='<div class="adminMsg ok">✅ Soru güncellendi.</div>';
@@ -372,7 +372,7 @@ async function deleteQuestion(id){
  if(!q)return;
  if(!confirm('Bu soruyu kalıcı olarak silmek istediğine emin misin?\\n\\n'+q.question))return;
  try{
-   let r=await fetch(API,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})});
+   let headers=await getAdminHeaders();let r=await fetch(API,{method:'DELETE',headers,body:JSON.stringify({id:id})});
    let data=await r.json().catch(function(){return {}});
    if(!r.ok)throw Error(data.error||'Silme başarısız.');
    await loadBank();
